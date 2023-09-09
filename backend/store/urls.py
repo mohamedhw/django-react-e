@@ -10,6 +10,6 @@ urlpatterns = [
     path('<str:pk>/rmone_from_cart/', views.remove_one_item_from_cart),
     path('<str:pk>/rm_from_cart/', views.remove_from_cart),
     path('api-search/', views.PostSearch.as_view()),
-    path('wish/', views.WishList().as_view()),
-    path('<str:pk>/wish/', views.add_wish),
+    path('api-wish/', views.WishList().as_view()),
+    path('<str:pk>/api-wish/', views.add_wish),
 ]

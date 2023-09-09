@@ -10,6 +10,12 @@ from rest_framework import permissions, authentication
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt # new
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_protect
+from rest_framework.decorators import authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
+
 
 class Home(generics.ListAPIView):
     queryset = Item.objects.all()
@@ -20,8 +26,11 @@ class Detail(generics.RetrieveAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializers
     lookup_field = 'pk'
+    permission_classes = (permissions.AllowAny, )
 
 # WISH LIST VIEWS
+
+
 
 class WishList(generics.ListAPIView):
     queryset = Item.objects.all()
@@ -32,6 +41,10 @@ class WishList(generics.ListAPIView):
         qs = user.wish.all()
 
         return qs
+
+
+
+
 
 @api_view(["POST"])
 def add_wish(request, pk):
@@ -46,32 +59,57 @@ def add_wish(request, pk):
     except:
         return Response({"error": "error"})
 
+
+
+
+
 @api_view(["GET"])
+@csrf_protect
 def cart_view(request, *args, **kwargs):
+    try:
+        # Attempt to retrieve the order for the current user with ordered=False
+        order = Order.objects.get(user=request.user, ordered=False)
+        cart_total = order.get_total()
+        l = []
+        for i in order.items.all():
+            if i.item.discount_price:
+                price = i.item.discount_price
+            else:
+                price = i.item.price
 
-    orders = Order.objects.get(user=request.user, ordered=False)
-
-    l = []
-    for i in orders.items.all():
-
-        if i.item.discount_price:
-            price = i.item.discount_price
-        else:
-            price = i.item.price
-
-        quantity = i.quantity
-        name = i.item.title
+            id = i.item.id
+            quantity = i.quantity
+            name = i.item.title            
+            total = i.get_final_price()
+            pic = i.item.image.url
+            context = {
+                'id': id,
+                'price': price,
+                'quantity': quantity,
+                'name': name,
+                'pic': pic,
+                'total': total,
+            }
+            l.append(context)
         
-        context = {
-            'price' : price,
-            'quantity': quantity,
-            'name': name
+        serializer = CartItemSerializer(l, many=True).data
+        serializer_data = {
+            "cart_items": serializer,
+            "cart_total": cart_total
         }
-        l.append(context)
-    serializer = CartItemSerializer(l, many=True).data
-    return Response(serializer)
+        return Response(serializer_data)
+    except ObjectDoesNotExist:
+        # Handle the case where no order is found
+
+        return Response({"message": "No order exists for this user."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
 
 @api_view(["POST"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def add_to_cart(request, pk):
     item = get_object_or_404(Item, id=pk)
     order_item, created = OrderItem.objects.get_or_create(
@@ -96,7 +134,10 @@ def add_to_cart(request, pk):
     return Response("store:order")
 
 
-@api_view(["POST", "GET"])
+
+@api_view(["POST"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def remove_from_cart(request, pk):
     item = get_object_or_404(Item, pk=pk)
     order_qs = Order.objects.filter(user=request.user, ordered=False)
@@ -160,3 +201,5 @@ class PostSearch(generics.ListAPIView):
         # qs = ItemSerializer(qs)
 
         return qs
+
+

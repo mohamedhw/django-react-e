@@ -8,13 +8,20 @@ class CartItemSerializer(serializers.Serializer):
     name = serializers.CharField()
     price = serializers.IntegerField()
     quantity = serializers.IntegerField()
-
+    pic = serializers.ImageField()
+    total = serializers.IntegerField()
     def to_representation(self, instance):
         return {
+            'id': instance['id'],
             'name': instance['name'],
             'price': instance['price'],
-            'quantity': instance['quantity']
+            'quantity': instance['quantity'],
+            'pic': instance['pic'],
+            'total': instance['total'],
         }
+
+
+
 
 class ItemSerializers(serializers.ModelSerializer):
     class Meta:
