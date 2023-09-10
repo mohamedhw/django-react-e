@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.conf import settings
 from django_countries.fields import CountryField
 from django.db.models import Q
 from django.contrib.auth.models import User
@@ -81,7 +81,7 @@ class Order(models.Model):
     items = models.ManyToManyField(OrderItem)
     date_ordered = models.DateTimeField(default=datetime.now)
     ordered = models.BooleanField(default=False)
-    # billing_address = models.ForeignKey("BillingAddress", on_delete=models.SET_NULL, blank=True, null=True)
+    billing_address = models.ForeignKey("BillingAddress", on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return str(self.id)
@@ -93,13 +93,13 @@ class Order(models.Model):
         return total
 
 
-# class BillingAddress(models.Model):
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL , on_delete=models.CASCADE)
-#     billing_order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="billing_addresses")
-#     address = models.CharField(max_length=100)
-#     address2 = models.CharField(max_length=100)
-#     country = CountryField(multiple=False)
-#     zip = models.CharField(max_length=100)
+class BillingAddress(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL , on_delete=models.CASCADE)
+    billing_order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="billing_addresses")
+    address = models.CharField(max_length=100)
+    address2 = models.CharField(max_length=100)
+    country = CountryField(multiple=False)
+    zip = models.CharField(max_length=100)
 
-#     def __str__(self):
-#         return self.user.username
+    def __str__(self):
+        return self.user.username

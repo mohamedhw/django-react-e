@@ -12,4 +12,5 @@ urlpatterns = [
     path('api-search/', views.PostSearch.as_view()),
     path('api-wish/', views.WishList().as_view()),
     path('<str:pk>/api-wish/', views.add_wish),
+    path('api-checkout/', views.CheckoutView.as_view())
 ]

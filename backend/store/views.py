@@ -1,4 +1,4 @@
-from .models import Item, Order, OrderItem
+from .models import Item, Order, OrderItem, BillingAddress
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from .serializers import ItemSerializers, CartItemSerializer, Task_extendedSerializer, OrderSerializers, OrderItemSerializers, TaskSerializer, JoinTaskSerializer
@@ -203,3 +203,39 @@ class PostSearch(generics.ListAPIView):
         return qs
 
 
+class CheckoutView(generics.GenericAPIView):
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            order = Order.objects.get(user=request.user, ordered=False)
+            form = CheckoutForm()
+            context = {
+                "form": form,
+                "object": order,
+            }
+            return render(self.request, 'checkout-page.html', context)
+        else:
+            return redirect("users:login")
+    def post(self, *args, **kwargs):
+        try:
+            
+            data = self.request.data
+            user_ = self.request.user # user
+            
+
+            order = Order.objects.get(user=user_, ordered=False)
+            
+            billing_address = BillingAddress(
+            user = user_,
+            billing_order = order,
+            address = data['address'],
+            address2 = data['address2'],
+            country = data['country'],
+            zip = data['zip'],
+            )
+            billing_address.save()
+            order.billing_address=billing_address
+            order.save()
+            return Response({"massege": "success"})
+        except ObjectDoesNotExist:
+            messages.warning(self.request, "You do not have any order !")
+            return Response({"massege": "api failed"})
