@@ -79,12 +79,20 @@ class OrderItem(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     items = models.ManyToManyField(OrderItem)
-    date_ordered = models.DateTimeField(default=datetime.now)
     ordered = models.BooleanField(default=False)
+    shipping = models.BooleanField(default=False)
     billing_address = models.ForeignKey("BillingAddress", on_delete=models.SET_NULL, blank=True, null=True)
+    date_ordered = models.DateTimeField(default=datetime.now)
 
     def __str__(self):
         return str(self.id)
+
+    def get_all_items(self):
+        qs = {
+            "title": items.title,
+            "quantity": items.quantity
+        }
+        return qs
 
     def get_total(self):
         total = 0
@@ -100,6 +108,7 @@ class BillingAddress(models.Model):
     address2 = models.CharField(max_length=100)
     country = CountryField(multiple=False)
     zip = models.CharField(max_length=100)
+    date_billing = models.DateTimeField(default=datetime.now)
 
     def __str__(self):
         return self.user.username

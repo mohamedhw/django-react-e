@@ -1,6 +1,6 @@
 from .models import Item, Order, OrderItem, BillingAddress
 from django.contrib import messages
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from .serializers import ItemSerializers, CartItemSerializer, Task_extendedSerializer, OrderSerializers, OrderItemSerializers, TaskSerializer, JoinTaskSerializer
 from rest_framework import generics, mixins
 from rest_framework.decorators import api_view
@@ -15,7 +15,9 @@ from django.views.decorators.csrf import csrf_protect
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
-
+import stripe
+from django.conf import settings #n
+from django.http.response import JsonResponse #n
 
 class Home(generics.ListAPIView):
     queryset = Item.objects.all()
@@ -204,17 +206,7 @@ class PostSearch(generics.ListAPIView):
 
 
 class CheckoutView(generics.GenericAPIView):
-    def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            order = Order.objects.get(user=request.user, ordered=False)
-            form = CheckoutForm()
-            context = {
-                "form": form,
-                "object": order,
-            }
-            return render(self.request, 'checkout-page.html', context)
-        else:
-            return redirect("users:login")
+
     def post(self, *args, **kwargs):
         try:
             
@@ -222,7 +214,7 @@ class CheckoutView(generics.GenericAPIView):
             user_ = self.request.user # user
             
 
-            order = Order.objects.get(user=user_, ordered=False)
+            order = Order.objects.get(user=user_, shipping=False)
             
             billing_address = BillingAddress(
             user = user_,
@@ -239,3 +231,65 @@ class CheckoutView(generics.GenericAPIView):
         except ObjectDoesNotExist:
             messages.warning(self.request, "You do not have any order !")
             return Response({"massege": "api failed"})
+
+
+@csrf_exempt
+@api_view(["GET"])
+def stripe_config(request):
+    if request.method == 'GET':
+        stripe_config = {'publicKey': settings.STRIPE_PUBLISHABLE_KEY}
+        return JsonResponse(stripe_config, safe=False)
+
+
+@api_view(["POST"])
+def oreder_ordered(request):
+    order = Order.objects.get(user=request.user, ordered = False)
+    for order_item in order.items.all():
+        order_item.ordered = True
+        order_item.save()
+    order.ordered = True
+    order.save()
+    return Response({"massege": "api order success"})
+
+@api_view(["POST", "GET"])
+def payment_success(request):
+    order = Order.objects.get(user=request.user, ordered=True, shipping = False)
+    for order_item in order.items.all():
+        order_item.shipping = True
+        order_item.save()
+    order.shipping = True
+    order.save()
+    return redirect("http://localhost:8000/")
+
+
+def payment_cancel(request):
+    return Response({"massege": "api order fail"})
+
+@csrf_exempt
+@api_view(["POST", "GET"])
+def create_checkout_session(request):
+    domain_url = 'http://localhost:8000/'
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    user = request.user
+    order = Order.objects.get(user=user, ordered=True, shipping=False)
+    total = order.get_total()
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            success_url=domain_url+'payment_success/',  # Change this to your relative success URL
+            cancel_url=domain_url+'/',    # Change this to your relative cancel URL
+            mode='payment',
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'unit_amount': total * 100,
+                    'product_data': {
+                        'name': 'Cart Total',
+                        'description': 'the total of the item in your cart',
+                    },
+                },
+                'quantity': 1,
+            }],
+        )
+        return JsonResponse({'sessionId': checkout_session.id})
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
