@@ -23,7 +23,7 @@ class ItemManager(models.Manager):
     def search(self, query=None):
         if query is None or query=="":
             return self.get_queryset().none()
-        lookups = Q(title__icontains=query) | Q(description__icontains=query) | Q(info__icontains=query) | Q(label__icontains=query) | Q(category__icontains=query)
+        lookups = Q(title__icontains=query) | Q(description__icontains=query) | Q(info__icontains=query)
         return self.get_queryset().filter(lookups)
 
 

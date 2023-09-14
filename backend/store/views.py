@@ -18,11 +18,39 @@ from rest_framework.permissions import IsAuthenticated
 import stripe
 from django.conf import settings #n
 from django.http.response import JsonResponse #n
+from django.db.models import Q
 
 class Home(generics.ListAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializers
+    paginate_by = 1
     permission_classes = (permissions.AllowAny, )
+
+    def get_queryset(self, *args, **kwargs):
+        # Start with all items
+        qs = Item.objects.all()
+        # Retrieve the 'category' and 'label' query parameters from the request
+        query = self.request.GET.get('q')
+        category = self.request.GET.get('category')
+        label = self.request.GET.get('label')
+        # Apply filters if 'category' and 'label' are provided
+        if category and label:
+            qs = qs.filter(category=category, label=label)
+        elif category:
+            qs = qs.filter(category=category)
+        elif label:
+            qs = qs.filter(label=label)
+
+        if query:
+            lookups = (
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(info__icontains=query)
+            )
+            qs = qs.filter(lookups)
+        return qs
+    
+
 
 class Detail(generics.RetrieveAPIView):
     queryset = Item.objects.all()
@@ -31,9 +59,6 @@ class Detail(generics.RetrieveAPIView):
     permission_classes = (permissions.AllowAny, )
 
 # WISH LIST VIEWS
-
-
-
 class WishList(generics.ListAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializers
@@ -43,9 +68,6 @@ class WishList(generics.ListAPIView):
         qs = user.wish.all()
 
         return qs
-
-
-
 
 
 @api_view(["POST"])
@@ -197,11 +219,27 @@ class PostSearch(generics.ListAPIView):
     serializer_class= ItemSerializers
 
     def get_queryset(self, *args, **kwargs):
-        qs = super().get_queryset(*args, **kwargs)
+        # Start with all items
+        qs = Item.objects.all()
+        # Retrieve the 'category' and 'label' query parameters from the request
         query = self.request.GET.get('q')
-        qs = Item.objects.search(query)
-        # qs = ItemSerializer(qs)
+        category = self.request.GET.get('category')
+        label = self.request.GET.get('label')
+        # Apply filters if 'category' and 'label' are provided
+        if category and label:
+            qs = qs.filter(category=category, label=label)
+        elif category:
+            qs = qs.filter(category=category)
+        elif label:
+            qs = qs.filter(label=label)
 
+        if query:
+            lookups = (
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(info__icontains=query)
+            )
+            qs = qs.filter(lookups)
         return qs
 
 
