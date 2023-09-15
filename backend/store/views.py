@@ -15,6 +15,7 @@ from django.views.decorators.csrf import csrf_protect
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import LimitOffsetPagination
 import stripe
 from django.conf import settings #n
 from django.http.response import JsonResponse #n
@@ -23,7 +24,7 @@ from django.db.models import Q
 class Home(generics.ListAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializers
-    paginate_by = 1
+    pagination_class= LimitOffsetPagination
     permission_classes = (permissions.AllowAny, )
 
     def get_queryset(self, *args, **kwargs):
@@ -213,34 +214,6 @@ def remove_one_item_from_cart(request, pk):
     messages.info(request, "Item quantity updated successfully !")
     return Response({"massege": "success"})
 
-
-class PostSearch(generics.ListAPIView):
-    queryset =Item.objects.all()
-    serializer_class= ItemSerializers
-
-    def get_queryset(self, *args, **kwargs):
-        # Start with all items
-        qs = Item.objects.all()
-        # Retrieve the 'category' and 'label' query parameters from the request
-        query = self.request.GET.get('q')
-        category = self.request.GET.get('category')
-        label = self.request.GET.get('label')
-        # Apply filters if 'category' and 'label' are provided
-        if category and label:
-            qs = qs.filter(category=category, label=label)
-        elif category:
-            qs = qs.filter(category=category)
-        elif label:
-            qs = qs.filter(label=label)
-
-        if query:
-            lookups = (
-                Q(title__icontains=query) |
-                Q(description__icontains=query) |
-                Q(info__icontains=query)
-            )
-            qs = qs.filter(lookups)
-        return qs
 
 
 class CheckoutView(generics.GenericAPIView):
