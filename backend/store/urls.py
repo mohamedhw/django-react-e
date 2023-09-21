@@ -13,7 +13,6 @@ urlpatterns = [
     path('<str:pk>/api-wish/', views.add_wish),
     path('api-checkout/', views.CheckoutView.as_view()),
     path("oreder_ordered/", views.oreder_ordered),
-
     #stripe
     path('config/', views.stripe_config),
     path('payment_success/', views.payment_success),

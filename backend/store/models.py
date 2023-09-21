@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from django_countries.fields import CountryField
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -106,7 +105,8 @@ class BillingAddress(models.Model):
     billing_order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="billing_addresses")
     address = models.CharField(max_length=100)
     address2 = models.CharField(max_length=100)
-    country = CountryField(multiple=False)
+    country = models.CharField(max_length=100)
+    region = models.CharField(max_length=100)
     zip = models.CharField(max_length=100)
     date_billing = models.DateTimeField(default=datetime.now)
 

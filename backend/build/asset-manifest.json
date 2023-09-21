@@ -1,15 +1,37 @@
 {
   "files": {
-    "main.css": "/static/css/main.666dbd63.css",
-    "main.js": "/static/js/main.d8e02757.js",
+    "main.css": "/static/css/main.31f21576.css",
+    "main.js": "/static/js/main.b98c025c.js",
     "static/js/787.cda612ba.chunk.js": "/static/js/787.cda612ba.chunk.js",
+    "static/media/Roboto-Bold.ttf": "/static/media/Roboto-Bold.29d0602f3c74d2be2107.ttf",
+    "static/media/Roboto-Thin.ttf": "/static/media/Roboto-Thin.bc405e852883934268b5.ttf",
+    "static/media/Roboto-Medium.ttf": "/static/media/Roboto-Medium.987ab5111b87d67e6f6e.ttf",
+    "static/media/Roboto-Light.ttf": "/static/media/Roboto-Light.7cedccda2feb66b96d7a.ttf",
+    "static/media/Roboto-Regular.ttf": "/static/media/Roboto-Regular.04b605aa85f24816e3e6.ttf",
+    "static/media/Roboto-Medium.woff": "/static/media/Roboto-Medium.e2d3fd034896d1bc0fc5.woff",
+    "static/media/Roboto-Bold.woff": "/static/media/Roboto-Bold.9f4933e9b9559f8615f3.woff",
+    "static/media/Roboto-Light.woff": "/static/media/Roboto-Light.dd9e8e47c13bd958253a.woff",
+    "static/media/Roboto-Regular.woff": "/static/media/Roboto-Regular.5e1aec00d3a032511dde.woff",
+    "static/media/Roboto-Thin.woff": "/static/media/Roboto-Thin.7bf9050517b14eb2acfd.woff",
+    "static/media/Roboto-Medium.woff2": "/static/media/Roboto-Medium.c90d94fb3f94e426c31e.woff2",
+    "static/media/Roboto-Bold.woff2": "/static/media/Roboto-Bold.8b6957a1ce4f6e9236f9.woff2",
+    "static/media/Roboto-Light.woff2": "/static/media/Roboto-Light.7d1febe76014e661e3f2.woff2",
+    "static/media/Roboto-Regular.woff2": "/static/media/Roboto-Regular.e9a9d280f48fac104245.woff2",
+    "static/media/Roboto-Thin.woff2": "/static/media/Roboto-Thin.06ca73da1f5188a4c679.woff2",
+    "static/media/Roboto-Thin.eot": "/static/media/Roboto-Thin.ddc05a8dfb503bf29180.eot",
+    "static/media/Roboto-Medium.eot": "/static/media/Roboto-Medium.ad11054c06a5d3f128da.eot",
+    "static/media/Roboto-Regular.eot": "/static/media/Roboto-Regular.86c03c03a6e4002e883a.eot",
+    "static/media/Roboto-Bold.eot": "/static/media/Roboto-Bold.5f2071a3ea1059dce0ad.eot",
+    "static/media/Roboto-Light.eot": "/static/media/Roboto-Light.82fabc8ad3eb207e456a.eot",
     "index.html": "/index.html",
-    "main.666dbd63.css.map": "/static/css/main.666dbd63.css.map",
-    "main.d8e02757.js.map": "/static/js/main.d8e02757.js.map",
+    "static/media/arrow_left.svg": "/static/media/arrow_left.2b063d13b9ef574cd7d1.svg",
+    "static/media/arrow_right.svg": "/static/media/arrow_right.0897f985cc5c7537b31d.svg",
+    "main.31f21576.css.map": "/static/css/main.31f21576.css.map",
+    "main.b98c025c.js.map": "/static/js/main.b98c025c.js.map",
     "787.cda612ba.chunk.js.map": "/static/js/787.cda612ba.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.666dbd63.css",
-    "static/js/main.d8e02757.js"
+    "static/css/main.31f21576.css",
+    "static/js/main.b98c025c.js"
   ]
 }

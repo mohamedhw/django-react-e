@@ -15,7 +15,6 @@ from django.views.decorators.csrf import csrf_protect
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.pagination import LimitOffsetPagination
 import stripe
 from django.conf import settings #n
 from django.http.response import JsonResponse #n
@@ -24,7 +23,6 @@ from django.db.models import Q
 class Home(generics.ListAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializers
-    pagination_class= LimitOffsetPagination
     permission_classes = (permissions.AllowAny, )
 
     def get_queryset(self, *args, **kwargs):
@@ -59,6 +57,24 @@ class Detail(generics.RetrieveAPIView):
     lookup_field = 'pk'
     permission_classes = (permissions.AllowAny, )
 
+    def get_related_items(self, item):
+        related = Item.objects.filter(category=item.category).exclude(pk=item.pk)[:3]
+        if related.count() < 3:
+            additional_items_needed = 3 - related.count()
+            additional_items = Item.objects.exclude(
+                Q(category=item.category) | Q(pk=item.pk)
+            )[:additional_items_needed]
+            related = list(related) + list(additional_items)
+        return related
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object() # Retrieve the Main Item
+        related_items = self.get_related_items(instance) # Retrieve Related Items
+        serializer = self.get_serializer(instance) # Serialize the Main Item
+        data = serializer.data        
+        data['related_items'] = ItemSerializers(related_items, many=True).data # Extend the Response Data
+        return Response(data)
+    
 # WISH LIST VIEWS
 class WishList(generics.ListAPIView):
     queryset = Item.objects.all()
@@ -233,6 +249,7 @@ class CheckoutView(generics.GenericAPIView):
             address = data['address'],
             address2 = data['address2'],
             country = data['country'],
+            region = data['region'],
             zip = data['zip'],
             )
             billing_address.save()
