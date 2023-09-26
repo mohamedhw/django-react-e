@@ -1,6 +1,6 @@
 from dataclasses import fields
 from rest_framework import serializers
-from .models import Item, OrderItem, Order
+from .models import Item, OrderItem, Order, BillingAddress
 
 
 
@@ -63,4 +63,10 @@ class OrderSerializers(serializers.ModelSerializer):
     class Meta:
         model = Order
 
+        fields = "__all__"
+
+
+class BillingSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = BillingAddress
         fields = "__all__"

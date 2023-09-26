@@ -1,7 +1,7 @@
 from .models import Item, Order, OrderItem, BillingAddress
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
-from .serializers import ItemSerializers, CartItemSerializer, Task_extendedSerializer, OrderSerializers, OrderItemSerializers, TaskSerializer, JoinTaskSerializer
+from .serializers import ItemSerializers, CartItemSerializer, Task_extendedSerializer, OrderSerializers, OrderItemSerializers, TaskSerializer, JoinTaskSerializer, BillingSerializers
 from rest_framework import generics, mixins
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -80,10 +80,29 @@ class WishList(generics.ListAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializers
 
-    def get_queryset(self):
+    def get_queryset(self, *args, **kwargs):
         user = self.request.user
+        # Start with all items
         qs = user.wish.all()
+        # Retrieve the 'category' and 'label' query parameters from the request
+        query = self.request.GET.get('q')
+        category = self.request.GET.get('category')
+        label = self.request.GET.get('label')
+        # Apply filters if 'category' and 'label' are provided
+        if category and label:
+            qs = qs.filter(category=category, label=label)
+        elif category:
+            qs = qs.filter(category=category)
+        elif label:
+            qs = qs.filter(label=label)
 
+        if query:
+            lookups = (
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(info__icontains=query)
+            )
+            qs = qs.filter(lookups)
         return qs
 
 
@@ -233,10 +252,16 @@ def remove_one_item_from_cart(request, pk):
 
 
 class CheckoutView(generics.GenericAPIView):
+    serializer_class = BillingSerializers
+    def get(self, *args, **kwargs):
+        user_ = self.request.user
+        order = BillingAddress.objects.filter(user=user_)
+        data = BillingSerializers(order[len(order)-1]).data
+        
+        return Response(data)
 
     def post(self, *args, **kwargs):
         try:
-            
             data = self.request.data
             user_ = self.request.user # user
             

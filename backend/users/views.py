@@ -41,7 +41,6 @@ class UpdateUserView(APIView):
         
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class UpdateProfileView(generics.UpdateAPIView):
-    parser_classes = (FileUploadParser,)
     queryset =  Profile.objects.all()
     serializer_class = UserProfileSerializer()
 
