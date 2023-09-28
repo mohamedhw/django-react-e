@@ -58,8 +58,8 @@ class Detail(generics.RetrieveAPIView):
     permission_classes = (permissions.AllowAny, )
 
     def get_related_items(self, item):
-        related = Item.objects.filter(category=item.category).exclude(pk=item.pk)[:3]
-        if related.count() < 3:
+        related = Item.objects.filter(category=item.category).exclude(pk=item.pk)[:4]
+        if related.count() < 4:
             additional_items_needed = 3 - related.count()
             additional_items = Item.objects.exclude(
                 Q(category=item.category) | Q(pk=item.pk)
