@@ -280,7 +280,7 @@ class CheckoutView(generics.GenericAPIView):
             order.billing_address=billing_address
             order.save()
             return Response({"massege": "success"})
-        except ObjectDoesNotExist:
+        except:
             messages.warning(self.request, "You do not have any order !")
             return Response({"massege": "api failed"})
 
@@ -295,20 +295,20 @@ def stripe_config(request):
 
 @api_view(["POST"])
 def oreder_ordered(request):
-    order = Order.objects.get(user=request.user, ordered = False)
     try:
         order_ = Order.objects.filter(user=request.user, ordered=True, shipping = False)
         for order in order_:
             for order_item in order.items.all():
                 order_item.delete()
             order.delete()
-
+        order = Order.objects.get(user=request.user, ordered = False)
         for order_item in order.items.all():
             order_item.ordered = True
             order_item.save()
         order.ordered = True
         order.save()
     except:
+        order = Order.objects.get(user=request.user, ordered = False)
         for order_item in order.items.all():
             order_item.ordered = True
             order_item.save()
@@ -348,8 +348,6 @@ def create_checkout_session(request):
     order = Order.objects.get(user=user, ordered=True, shipping=False)
     total = order.get_total()
 
-
-    print(total)
     try:
         checkout_session = stripe.checkout.Session.create(
             success_url=domain_url+'payment_success/',  # Change this to your relative success URL
