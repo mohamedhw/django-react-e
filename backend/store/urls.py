@@ -17,5 +17,5 @@ urlpatterns = [
     path('config/', views.stripe_config),
     path('payment_success/', views.payment_success),
     path('create-checkout-session/', views.create_checkout_session), # new
-    path('cancel/', views.payment_cancel),
+    path('payment_cancel/', views.payment_cancel),
 ]

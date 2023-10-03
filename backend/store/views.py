@@ -60,7 +60,7 @@ class Detail(generics.RetrieveAPIView):
     def get_related_items(self, item):
         related = Item.objects.filter(category=item.category).exclude(pk=item.pk)[:4]
         if related.count() < 4:
-            additional_items_needed = 3 - related.count()
+            additional_items_needed = 4 - related.count()
             additional_items = Item.objects.exclude(
                 Q(category=item.category) | Q(pk=item.pk)
             )[:additional_items_needed]
@@ -158,10 +158,9 @@ def cart_view(request, *args, **kwargs):
             "cart_total": cart_total
         }
         return Response(serializer_data)
-    except ObjectDoesNotExist:
+    except:
         # Handle the case where no order is found
-
-        return Response({"message": "No order exists for this user."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"message": "No order exists for this user."})
 
 
 
@@ -266,7 +265,7 @@ class CheckoutView(generics.GenericAPIView):
             user_ = self.request.user # user
             
 
-            order = Order.objects.get(user=user_, shipping=False)
+            order = Order.objects.get(user=user_, ordered=True, shipping=False)
             
             billing_address = BillingAddress(
             user = user_,
@@ -297,16 +296,32 @@ def stripe_config(request):
 @api_view(["POST"])
 def oreder_ordered(request):
     order = Order.objects.get(user=request.user, ordered = False)
-    for order_item in order.items.all():
-        order_item.ordered = True
-        order_item.save()
-    order.ordered = True
-    order.save()
+    try:
+        order_ = Order.objects.filter(user=request.user, ordered=True, shipping = False)
+        for order in order_:
+            for order_item in order.items.all():
+                order_item.delete()
+            order.delete()
+
+        for order_item in order.items.all():
+            order_item.ordered = True
+            order_item.save()
+        order.ordered = True
+        order.save()
+    except:
+        for order_item in order.items.all():
+            order_item.ordered = True
+            order_item.save()
+        order.ordered = True
+        order.save()
     return Response({"massege": "api order success"})
 
 @api_view(["POST", "GET"])
 def payment_success(request):
-    order = Order.objects.get(user=request.user, ordered=True, shipping = False)
+    try:
+        order = Order.objects.get(user=request.user, ordered=True, shipping = False)
+    except:
+        order = Order.objects.get(user=request.user, ordered=True, shipping = False)[-1]
     for order_item in order.items.all():
         order_item.shipping = True
         order_item.save()
@@ -314,22 +329,31 @@ def payment_success(request):
     order.save()
     return redirect("http://localhost:8000/")
 
-
+@api_view(["POST", "GET"])
 def payment_cancel(request):
-    return Response({"massege": "api order fail"})
+    order = Order.objects.get(user=request.user, ordered=True, shipping = False)
+    for order_item in order.items.all():
+        order_item.delete()
+    order.delete()
+    return redirect("http://localhost:8000/")
 
 @csrf_exempt
 @api_view(["POST", "GET"])
 def create_checkout_session(request):
+    
     domain_url = 'http://localhost:8000/'
     stripe.api_key = settings.STRIPE_SECRET_KEY
     user = request.user
+
     order = Order.objects.get(user=user, ordered=True, shipping=False)
     total = order.get_total()
+
+
+    print(total)
     try:
         checkout_session = stripe.checkout.Session.create(
             success_url=domain_url+'payment_success/',  # Change this to your relative success URL
-            cancel_url=domain_url+'/',    # Change this to your relative cancel URL
+            cancel_url=domain_url+'payment_cancel/',    # Change this to your relative cancel URL
             mode='payment',
             line_items=[{
                 'price_data': {
